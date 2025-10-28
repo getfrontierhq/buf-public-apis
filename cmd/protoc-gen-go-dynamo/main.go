@@ -5,7 +5,7 @@ import (
 	pgsgo "github.com/lyft/protoc-gen-star/v2/lang/go"
 	"google.golang.org/protobuf/types/pluginpb"
 
-	"github.com/getfrontierhq/buf-plugins/internal/godynamo"
+	"github.com/getfrontierhq/buf-public-apis/internal/godynamo"
 )
 
 func main() {
