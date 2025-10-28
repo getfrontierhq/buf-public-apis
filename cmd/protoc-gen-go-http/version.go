@@ -1,3 +1,3 @@
 package main
 
-const release = "v0.0.7"
+const release = "v0.0.8"
