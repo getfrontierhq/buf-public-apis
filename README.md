@@ -187,6 +187,68 @@ pb.RegisterUserServiceHTTPServer(r, yourService)
 
 ---
 
+### protoc-gen-go-http-client
+
+A protoc plugin that generates HTTP **client** code with automatic interface generation from `google.api.http` annotations.
+
+#### Installation
+
+```bash
+go install github.com/getfrontierhq/buf-public-apis/cmd/protoc-gen-go-http-client@latest
+```
+
+#### Features
+
+- HTTP client generation from proto services
+- Automatic interface generation for testability
+- Private fields with public getter methods
+- Support for nested service structures
+- Path parameter handling
+- Compile-time interface checks
+
+#### Usage
+
+1. Add proto dependency:
+
+```yaml
+deps:
+  - buf.build/googleapis/googleapis
+```
+
+2. Configure the plugin:
+
+```yaml
+version: v2
+plugins:
+  - local: protoc-gen-go-http-client
+    out: pkg/go
+    strategy: all
+    opt:
+      - paths=source_relative
+      - client=vendors.iniciador:vendors/iniciador/httpclient/client
+```
+
+3. Generate:
+
+```bash
+buf generate
+```
+
+#### Example
+
+```go
+// Create client (returns *IniciadorClientImpl)
+c := client.NewIniciadorClient("https://api.example.com", "token")
+
+// Use services via getter methods (returns interface types)
+accounts := c.GetAccounts()  // Returns AccountsService interface
+resp, err := accounts.ListAccounts(ctx, req)
+```
+
+See [cmd/protoc-gen-go-http-client/README.md](cmd/protoc-gen-go-http-client/README.md) for detailed documentation.
+
+---
+
 ## Proto Definitions
 
 All proto annotations are published to:
