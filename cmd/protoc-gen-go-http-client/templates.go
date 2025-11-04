@@ -34,11 +34,9 @@ type {{.InterfaceName}} interface {
 
 // {{.ImplName}} provides {{.ServiceName}} operations
 type {{.ImplName}} struct {
+	{{.InterfaceName}}
 	client *http.HTTPClient
 }
-
-// Ensure {{.ImplName}} implements {{.InterfaceName}}
-var _ {{.InterfaceName}} = (*{{.ImplName}})(nil)
 
 {{range .Methods}}
 // {{.Name}} makes a {{.HTTP.Method}} request to {{.HTTP.Path}}
@@ -77,6 +75,7 @@ type {{.InterfaceName}} interface {
 
 // {{.ImplName}} groups {{.CategoryLower}} services
 type {{.ImplName}} struct {
+	{{.InterfaceName}}
 {{range .Services}}	{{.PrivateField}} *{{.ImplName}}
 {{end}}}
 
@@ -87,9 +86,6 @@ func (c *{{$.ImplName}}) Get{{.ServiceName}}() {{.InterfaceName}} {
 }
 {{end}}
 
-// Ensure {{.ImplName}} implements {{.InterfaceName}}
-var _ {{.InterfaceName}} = (*{{.ImplName}})(nil)
-
 {{range $svc := .Services}}
 // {{$svc.InterfaceName}} defines the interface for {{$svc.ServiceName}}
 type {{$svc.InterfaceName}} interface {
@@ -99,11 +95,9 @@ type {{$svc.InterfaceName}} interface {
 
 // {{$svc.ImplName}} provides {{$svc.ServiceName}} operations
 type {{$svc.ImplName}} struct {
+	{{$svc.InterfaceName}}
 	client *http.HTTPClient
 }
-
-// Ensure {{$svc.ImplName}} implements {{$svc.InterfaceName}}
-var _ {{$svc.InterfaceName}} = (*{{$svc.ImplName}})(nil)
 
 {{range $svc.Methods}}
 // {{.Name}} makes a {{.HTTP.Method}} request to {{.HTTP.Path}}
@@ -146,6 +140,7 @@ type {{.InterfaceName}} interface {
 
 // {{.ImplName}} is the root HTTP client implementation
 type {{.ImplName}} struct {
+	{{.InterfaceName}}
 	httpClient *httpclient.HTTPClient
 {{range .TopLevelServices}}	{{.PrivateField}} *{{.ImplName}}
 {{end}}{{range .NestedClients}}	{{.PrivateField}} *{{.ImplName}}
@@ -163,9 +158,6 @@ func (c *{{$.ImplName}}) Get{{.FieldName}}() {{.InterfaceName}} {
 	return c.{{.PrivateField}}
 }
 {{end}}
-
-// Ensure {{.ImplName}} implements {{.InterfaceName}}
-var _ {{.InterfaceName}} = (*{{.ImplName}})(nil)
 
 // New{{.ClientName}} creates a new HTTP client
 //
