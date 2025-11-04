@@ -1,0 +1,36 @@
+name: Bump Dependency
+
+on:
+  workflow_dispatch:
+    inputs:
+      dep-name:
+        description: "Name of the dependency to bump"
+        required: true
+        type: string
+      dep-repo:
+        description: "Repository of the dependency to bump"
+        required: true
+        type: string
+      version:
+        description: "New version to set"
+        required: true
+        type: string
+      bump-type:
+        description: "Type of version bump (patch, minor, major)"
+        required: true
+        type: string
+
+permissions:
+  id-token: write
+  contents: write
+  pull-requests: write
+
+jobs:
+  bump:
+    uses: getfrontierhq/github-actions/.github/workflows/org-bump-dependency.yaml@main
+    with:
+      dep-name: ${{ inputs.dep-name }}
+      dep-repo: ${{ inputs.dep-repo }}
+      version: ${{ inputs.version }}
+      bump-type: ${{ inputs.bump-type }}
+    secrets: inherit
