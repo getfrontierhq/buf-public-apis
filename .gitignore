@@ -1,6 +1,6 @@
 # Binaries
 bin/
-/protoc-gen-*
+protoc-gen-*
 *.exe
 *.dll
 *.so
