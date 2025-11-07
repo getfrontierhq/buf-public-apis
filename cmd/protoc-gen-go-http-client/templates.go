@@ -167,9 +167,41 @@ func (c *{{$.ImplName}}) Get{{.FieldName}}() {{.InterfaceName}} {
 //
 // The client is immutable - to change the token, create a new client instance.
 func New{{.ClientName}}(baseURL, token string) *{{.ImplName}} {
+	return New{{.ClientName}}WithHTTPClient(baseURL, token, &http.Client{Timeout: 30 * time.Second})
+}
+
+// New{{.ClientName}}WithHTTPClient creates a new HTTP client with a custom http.Client.
+//
+// This constructor allows you to provide a custom http.Client with middleware,
+// custom transports, timeouts, etc. This is useful for:
+//   - Adding OpenTelemetry tracing via middleware
+//   - Implementing automatic token refresh on 401 responses
+//   - Adding retry logic for transient failures
+//   - Custom timeout or connection pooling settings
+//
+// Parameters:
+//   - baseURL: API base URL (e.g., "https://data.sandbox.iniciador.com.br")
+//   - token: Bearer token (empty string if using auth middleware)
+//   - customHTTPClient: Custom *http.Client with your desired configuration
+//
+// Example with middleware:
+//
+//	customClient := &http.Client{
+//		Transport: http_client.Chain(
+//			http.DefaultTransport,
+//			http_client.OTelMiddleware(),
+//			iniciador_client.IniciadorAuthMiddleware(tokenManager),
+//		),
+//		Timeout: 30 * time.Second,
+//	}
+//	client := New{{.ClientName}}WithHTTPClient(baseURL, "", customClient)
+//
+// When using auth middleware, pass an empty string for token since the middleware
+// will handle token injection automatically.
+func New{{.ClientName}}WithHTTPClient(baseURL, token string, customHTTPClient *http.Client) *{{.ImplName}} {
 	httpClient := &httpclient.HTTPClient{
 		BaseURL:    baseURL,
-		HTTPClient: &http.Client{Timeout: 30 * time.Second},
+		HTTPClient: customHTTPClient,
 		Token:      token,
 	}
 
