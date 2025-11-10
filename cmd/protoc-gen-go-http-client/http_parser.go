@@ -62,9 +62,8 @@ func extractHTTPInfo(method pgs.Method) (*HTTPInfo, error) {
 	// Extract wrap_response_into option if present
 	if proto.HasExtension(opts, http_client.E_WrapResponseInto) {
 		ext := proto.GetExtension(opts, http_client.E_WrapResponseInto)
-		if wrapField, ok := ext.(*string); ok && wrapField != nil {
-			fmt.Printf("[DEBUG] Found wrap_response_into for method %s: %s\n", method.Name(), *wrapField)
-			info.WrapResponseInto = *wrapField
+		if wrapField, ok := ext.(string); ok && wrapField != "" {
+			info.WrapResponseInto = wrapField
 		}
 	}
 
