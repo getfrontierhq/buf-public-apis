@@ -71,7 +71,23 @@ type HTTPClient struct {
 //
 // Returns an error if the request fails or the response status is not 2xx.
 func (c *HTTPClient) Post(ctx context.Context, path string, req proto.Message, resp proto.Message) error {
-	return c.do(ctx, "POST", path, req, resp)
+	return c.do(ctx, "POST", path, req, resp, "")
+}
+
+// PostWithWrap sends a POST request and wraps the response into a specified field before unmarshaling.
+//
+// This is useful when the API returns a plain array but proto requires a message wrapper.
+//
+// Parameters:
+//   - ctx: Context for cancellation and timeouts
+//   - path: API path (e.g., "/v1/data/participants")
+//   - req: Proto message to send as JSON body
+//   - resp: Proto message to unmarshal response into
+//   - wrapField: Field name to wrap the response array into (e.g., "response")
+//
+// Returns an error if the request fails or the response status is not 2xx.
+func (c *HTTPClient) PostWithWrap(ctx context.Context, path string, req proto.Message, resp proto.Message, wrapField string) error {
+	return c.do(ctx, "POST", path, req, resp, wrapField)
 }
 
 // Get sends a GET request and unmarshals the JSON response.
@@ -83,7 +99,22 @@ func (c *HTTPClient) Post(ctx context.Context, path string, req proto.Message, r
 //
 // Returns an error if the request fails or the response status is not 2xx.
 func (c *HTTPClient) Get(ctx context.Context, path string, resp proto.Message) error {
-	return c.do(ctx, "GET", path, nil, resp)
+	return c.do(ctx, "GET", path, nil, resp, "")
+}
+
+// GetWithWrap sends a GET request and wraps the response into a specified field before unmarshaling.
+//
+// This is useful when the API returns a plain array but proto requires a message wrapper.
+//
+// Parameters:
+//   - ctx: Context for cancellation and timeouts
+//   - path: API path (e.g., "/v1/data/participants")
+//   - resp: Proto message to unmarshal response into
+//   - wrapField: Field name to wrap the response array into (e.g., "response")
+//
+// Returns an error if the request fails or the response status is not 2xx.
+func (c *HTTPClient) GetWithWrap(ctx context.Context, path string, resp proto.Message, wrapField string) error {
+	return c.do(ctx, "GET", path, nil, resp, wrapField)
 }
 
 // do performs the actual HTTP request with proto message marshaling.
@@ -91,9 +122,13 @@ func (c *HTTPClient) Get(ctx context.Context, path string, resp proto.Message) e
 // This is the core method that handles:
 // 1. Request marshaling (proto → JSON with camelCase)
 // 2. HTTP request execution with proper headers
-// 3. Response unmarshaling (JSON → proto)
-// 4. Error handling
-func (c *HTTPClient) do(ctx context.Context, method, path string, req proto.Message, resp proto.Message) error {
+// 3. Response wrapping (if wrapField is specified)
+// 4. Response unmarshaling (JSON → proto)
+// 5. Error handling
+//
+// Parameters:
+//   - wrapField: If non-empty, wraps the response JSON into this field name before unmarshaling
+func (c *HTTPClient) do(ctx context.Context, method, path string, req proto.Message, resp proto.Message, wrapField string) error {
 	// Validate HTTP method (only GET and POST are currently supported)
 	if method != MethodGET && method != MethodPOST {
 		return fmt.Errorf("unsupported HTTP method: %s (only GET and POST are supported)", method)
@@ -152,11 +187,24 @@ func (c *HTTPClient) do(ctx context.Context, method, path string, req proto.Mess
 
 	// Unmarshal response
 	if resp != nil {
+		// If wrapField is specified, wrap the response JSON into that field
+		finalRespBytes := respBytes
+		if wrapField != "" {
+			// Create a wrapper object: {"fieldName": <original response>}
+			wrapped := make(map[string]json.RawMessage)
+			wrapped[wrapField] = json.RawMessage(respBytes)
+			var err error
+			finalRespBytes, err = json.Marshal(wrapped)
+			if err != nil {
+				return fmt.Errorf("wrap response: %w", err)
+			}
+		}
+
 		unmarshaler := protojson.UnmarshalOptions{
 			DiscardUnknown: true, // Ignore fields not in proto definition
 		}
-		if err := unmarshaler.Unmarshal(respBytes, resp); err != nil {
-			return fmt.Errorf("unmarshal response: %w (body: %s)", err, string(respBytes))
+		if err := unmarshaler.Unmarshal(finalRespBytes, resp); err != nil {
+			return fmt.Errorf("unmarshal response: %w (body: %s)", err, string(finalRespBytes))
 		}
 	}
 
