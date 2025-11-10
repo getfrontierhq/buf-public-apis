@@ -30,9 +30,10 @@ type Method struct {
 
 // HTTPInfo contains parsed google.api.http annotation data.
 type HTTPInfo struct {
-	Method     string   // HTTP method: "GET", "POST", "PUT", "DELETE", "PATCH"
-	Path       string   // URL path template (e.g., "/v1/data/links/{id}")
-	PathParams []string // Extracted path parameters (e.g., ["id", "link_id"])
+	Method           string   // HTTP method: "GET", "POST", "PUT", "DELETE", "PATCH"
+	Path             string   // URL path template (e.g., "/v1/data/links/{id}")
+	PathParams       []string // Extracted path parameters (e.g., ["id", "link_id"])
+	WrapResponseInto string   // Field name to wrap response array into (e.g., "response")
 }
 
 // ServiceTemplateData holds data for generating a service file.

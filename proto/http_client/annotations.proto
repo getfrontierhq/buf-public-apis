@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+package http_client;
+
+import "google/protobuf/descriptor.proto";
+
+option go_package = "buf.build/gen/go/frontier/public-apis/protocolbuffers/go/http_client";
+
+
+extend google.protobuf.MethodOptions {
+    string wrap_response_into = 50009;
+}  

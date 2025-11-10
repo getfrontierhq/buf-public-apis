@@ -44,9 +44,11 @@ func (s *{{$.ImplName}}) {{.Name}}(ctx context.Context, req *pb.{{.InputType}}) 
 	resp := &pb.{{.OutputType}}{}
 	{{if .PathConstruction}}path := {{.PathConstruction}}
 	{{else}}path := "{{.HTTP.Path}}"
-	{{end}}{{if eq .HTTP.Method "POST"}}err := s.client.Post(ctx, path, req, resp)
+	{{end}}{{if eq .HTTP.Method "POST"}}{{if .HTTP.WrapResponseInto}}err := s.client.PostWithWrap(ctx, path, req, resp, "{{.HTTP.WrapResponseInto}}")
+	{{else}}err := s.client.Post(ctx, path, req, resp)
+	{{end}}{{else}}{{if .HTTP.WrapResponseInto}}err := s.client.GetWithWrap(ctx, path, resp, "{{.HTTP.WrapResponseInto}}")
 	{{else}}err := s.client.Get(ctx, path, resp)
-	{{end}}return resp, err
+	{{end}}{{end}}return resp, err
 }
 {{end}}`
 
@@ -105,9 +107,11 @@ func (s *{{$svc.ImplName}}) {{.Name}}(ctx context.Context, req *pb.{{.InputType}
 	resp := &pb.{{.OutputType}}{}
 	{{if .PathConstruction}}path := {{.PathConstruction}}
 	{{else}}path := "{{.HTTP.Path}}"
-	{{end}}{{if eq .HTTP.Method "POST"}}err := s.client.Post(ctx, path, req, resp)
+	{{end}}{{if eq .HTTP.Method "POST"}}{{if .HTTP.WrapResponseInto}}err := s.client.PostWithWrap(ctx, path, req, resp, "{{.HTTP.WrapResponseInto}}")
+	{{else}}err := s.client.Post(ctx, path, req, resp)
+	{{end}}{{else}}{{if .HTTP.WrapResponseInto}}err := s.client.GetWithWrap(ctx, path, resp, "{{.HTTP.WrapResponseInto}}")
 	{{else}}err := s.client.Get(ctx, path, resp)
-	{{end}}return resp, err
+	{{end}}{{end}}return resp, err
 }
 {{end}}
 {{end}}`
