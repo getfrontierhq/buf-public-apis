@@ -56,7 +56,7 @@ func (m *HTTPClientModule) Execute(targets map[string]pgs.File, pkgs map[string]
 	}
 
 	// Generate base HTTP client (static file)
-	httpClientPath := filepath.Join(cfg.OutputSubdir, "http", "client.go")
+	httpClientPath := filepath.Join(cfg.OutputSubdir, "http", "client.gen.go")
 	m.AddGeneratorFile(httpClientPath, httpClientBaseCode)
 	m.Logf("Generated %s", httpClientPath)
 
@@ -76,9 +76,9 @@ func (m *HTTPClientModule) Execute(targets map[string]pgs.File, pkgs map[string]
 			continue
 		}
 
-		// Service name to filename: AuthService -> auth.go
+		// Service name to filename: AuthService -> auth.gen.go
 		serviceName := strings.ToLower(strings.TrimSuffix(svc.Name, "Service"))
-		filename := filepath.Join(cfg.OutputSubdir, serviceName+".go")
+		filename := filepath.Join(cfg.OutputSubdir, serviceName+".gen.go")
 		m.AddGeneratorFile(filename, code)
 		m.Logf("Generated %s (%d bytes)", filename, len(code))
 	}
@@ -104,17 +104,17 @@ func (m *HTTPClientModule) Execute(targets map[string]pgs.File, pkgs map[string]
 			continue
 		}
 
-		filename := filepath.Join(cfg.OutputSubdir, strings.ToLower(category)+".go")
+		filename := filepath.Join(cfg.OutputSubdir, strings.ToLower(category)+".gen.go")
 		m.AddGeneratorFile(filename, code)
 		m.Logf("Generated %s (%d bytes)", filename, len(code))
 	}
 
-	// Phase 5: Generate root client (client.go)
+	// Phase 5: Generate root client (client.gen.go)
 	clientCode, err := generateRootClient(cfg.ClientName, topLevel, nested, cfg)
 	if err != nil {
 		m.Logf("Error generating root client: %v", err)
 	} else {
-		clientFilename := filepath.Join(cfg.OutputSubdir, "client.go")
+		clientFilename := filepath.Join(cfg.OutputSubdir, "client.gen.go")
 		m.AddGeneratorFile(clientFilename, clientCode)
 		m.Logf("Generated %s (%d bytes)", clientFilename, len(clientCode))
 	}
