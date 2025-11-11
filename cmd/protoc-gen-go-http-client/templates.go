@@ -46,6 +46,12 @@ func (s *{{$.ImplName}}) {{.Name}}(ctx context.Context, req *pb.{{.InputType}}) 
 	{{else}}path := "{{.HTTP.Path}}"
 	{{end}}{{if eq .HTTP.Method "POST"}}{{if .HTTP.WrapResponseInto}}err := s.client.PostWithWrap(ctx, path, req, resp, "{{.HTTP.WrapResponseInto}}")
 	{{else}}err := s.client.Post(ctx, path, req, resp)
+	{{end}}{{else if eq .HTTP.Method "PUT"}}{{if .HTTP.WrapResponseInto}}err := s.client.PutWithWrap(ctx, path, req, resp, "{{.HTTP.WrapResponseInto}}")
+	{{else}}err := s.client.Put(ctx, path, req, resp)
+	{{end}}{{else if eq .HTTP.Method "PATCH"}}{{if .HTTP.WrapResponseInto}}err := s.client.PatchWithWrap(ctx, path, req, resp, "{{.HTTP.WrapResponseInto}}")
+	{{else}}err := s.client.Patch(ctx, path, req, resp)
+	{{end}}{{else if eq .HTTP.Method "DELETE"}}{{if .HTTP.WrapResponseInto}}err := s.client.DeleteWithWrap(ctx, path, req, resp, "{{.HTTP.WrapResponseInto}}")
+	{{else}}err := s.client.Delete(ctx, path, req, resp)
 	{{end}}{{else}}{{if .HTTP.WrapResponseInto}}err := s.client.GetWithWrap(ctx, path, resp, "{{.HTTP.WrapResponseInto}}")
 	{{else}}err := s.client.Get(ctx, path, resp)
 	{{end}}{{end}}return resp, err
@@ -109,6 +115,12 @@ func (s *{{$svc.ImplName}}) {{.Name}}(ctx context.Context, req *pb.{{.InputType}
 	{{else}}path := "{{.HTTP.Path}}"
 	{{end}}{{if eq .HTTP.Method "POST"}}{{if .HTTP.WrapResponseInto}}err := s.client.PostWithWrap(ctx, path, req, resp, "{{.HTTP.WrapResponseInto}}")
 	{{else}}err := s.client.Post(ctx, path, req, resp)
+	{{end}}{{else if eq .HTTP.Method "PUT"}}{{if .HTTP.WrapResponseInto}}err := s.client.PutWithWrap(ctx, path, req, resp, "{{.HTTP.WrapResponseInto}}")
+	{{else}}err := s.client.Put(ctx, path, req, resp)
+	{{end}}{{else if eq .HTTP.Method "PATCH"}}{{if .HTTP.WrapResponseInto}}err := s.client.PatchWithWrap(ctx, path, req, resp, "{{.HTTP.WrapResponseInto}}")
+	{{else}}err := s.client.Patch(ctx, path, req, resp)
+	{{end}}{{else if eq .HTTP.Method "DELETE"}}{{if .HTTP.WrapResponseInto}}err := s.client.DeleteWithWrap(ctx, path, req, resp, "{{.HTTP.WrapResponseInto}}")
+	{{else}}err := s.client.Delete(ctx, path, req, resp)
 	{{end}}{{else}}{{if .HTTP.WrapResponseInto}}err := s.client.GetWithWrap(ctx, path, resp, "{{.HTTP.WrapResponseInto}}")
 	{{else}}err := s.client.Get(ctx, path, resp)
 	{{end}}{{end}}return resp, err
