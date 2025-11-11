@@ -12,7 +12,6 @@ package main
 //
 // Key features:
 // - JSON marshaling/unmarshaling with protojson
-// - Bearer token authentication
 // - GET and POST support
 // - Consistent error handling
 const httpClientBaseCode = `// Package http provides a reusable HTTP client for JSON-encoded proto messages.
@@ -20,7 +19,6 @@ const httpClientBaseCode = `// Package http provides a reusable HTTP client for 
 // This client is designed for use with generated service wrappers.
 // It handles:
 // - JSON marshaling/unmarshaling with protojson
-// - Bearer token authentication
 // - Consistent error handling
 // - Support for GET and POST operations
 package http
@@ -53,9 +51,6 @@ type HTTPClient struct {
 
 	// HTTPClient is the underlying HTTP client (configure timeout, transport, etc.)
 	HTTPClient *http.Client
-
-	// Token is the Bearer token for authentication
-	Token string
 }
 
 // Post sends a POST request with a JSON-encoded proto message body.
@@ -159,9 +154,6 @@ func (c *HTTPClient) do(ctx context.Context, method, path string, req proto.Mess
 	httpReq.Header.Set("Accept", "application/json")
 	if req != nil {
 		httpReq.Header.Set("Content-Type", "application/json")
-	}
-	if c.Token != "" {
-		httpReq.Header.Set("Authorization", "Bearer "+c.Token)
 	}
 
 	// Execute request

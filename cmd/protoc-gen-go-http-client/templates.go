@@ -167,11 +167,8 @@ func (c *{{$.ImplName}}) Get{{.FieldName}}() {{.InterfaceName}} {
 //
 // Parameters:
 //   - baseURL: API base URL (e.g., "https://data.sandbox.iniciador.com.br")
-//   - token: Bearer token (empty string for unauthenticated client)
-//
-// The client is immutable - to change the token, create a new client instance.
-func New{{.ClientName}}(baseURL, token string) *{{.ImplName}} {
-	return New{{.ClientName}}WithHTTPClient(baseURL, token, &http.Client{Timeout: 30 * time.Second})
+func New{{.ClientName}}(baseURL string) *{{.ImplName}} {
+	return New{{.ClientName}}WithHTTPClient(baseURL, &http.Client{Timeout: 30 * time.Second})
 }
 
 // New{{.ClientName}}WithHTTPClient creates a new HTTP client with a custom http.Client.
@@ -179,13 +176,12 @@ func New{{.ClientName}}(baseURL, token string) *{{.ImplName}} {
 // This constructor allows you to provide a custom http.Client with middleware,
 // custom transports, timeouts, etc. This is useful for:
 //   - Adding OpenTelemetry tracing via middleware
-//   - Implementing automatic token refresh on 401 responses
+//   - Implementing authentication via custom transport/middleware
 //   - Adding retry logic for transient failures
 //   - Custom timeout or connection pooling settings
 //
 // Parameters:
 //   - baseURL: API base URL (e.g., "https://data.sandbox.iniciador.com.br")
-//   - token: Bearer token (empty string if using auth middleware)
 //   - customHTTPClient: Custom *http.Client with your desired configuration
 //
 // Example with middleware:
@@ -198,15 +194,11 @@ func New{{.ClientName}}(baseURL, token string) *{{.ImplName}} {
 //		),
 //		Timeout: 30 * time.Second,
 //	}
-//	client := New{{.ClientName}}WithHTTPClient(baseURL, "", customClient)
-//
-// When using auth middleware, pass an empty string for token since the middleware
-// will handle token injection automatically.
-func New{{.ClientName}}WithHTTPClient(baseURL, token string, customHTTPClient *http.Client) *{{.ImplName}} {
+//	client := New{{.ClientName}}WithHTTPClient(baseURL, customClient)
+func New{{.ClientName}}WithHTTPClient(baseURL string, customHTTPClient *http.Client) *{{.ImplName}} {
 	httpClient := &httpclient.HTTPClient{
 		BaseURL:    baseURL,
 		HTTPClient: customHTTPClient,
-		Token:      token,
 	}
 
 	return &{{.ImplName}}{
