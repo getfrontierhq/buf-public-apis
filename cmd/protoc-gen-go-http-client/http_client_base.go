@@ -12,7 +12,7 @@ package main
 //
 // Key features:
 // - JSON marshaling/unmarshaling with protojson
-// - GET and POST support
+// - Support for all HTTP methods (GET, POST, PUT, PATCH, DELETE)
 // - Consistent error handling
 const httpClientBaseCode = `// Package http provides a reusable HTTP client for JSON-encoded proto messages.
 //
@@ -20,7 +20,7 @@ const httpClientBaseCode = `// Package http provides a reusable HTTP client for 
 // It handles:
 // - JSON marshaling/unmarshaling with protojson
 // - Consistent error handling
-// - Support for GET and POST operations
+// - Support for all HTTP methods (GET, POST, PUT, PATCH, DELETE)
 package http
 
 import (
@@ -35,10 +35,13 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
-// Supported HTTP methods (only GET and POST are currently implemented)
+// Supported HTTP methods
 const (
-	MethodGET  = "GET"
-	MethodPOST = "POST"
+	MethodGET    = "GET"
+	MethodPOST   = "POST"
+	MethodPUT    = "PUT"
+	MethodPATCH  = "PATCH"
+	MethodDELETE = "DELETE"
 )
 
 // HTTPClient wraps the standard http.Client with proto+JSON support.
@@ -112,6 +115,99 @@ func (c *HTTPClient) GetWithWrap(ctx context.Context, path string, resp proto.Me
 	return c.do(ctx, "GET", path, nil, resp, wrapField)
 }
 
+// Put sends a PUT request with a JSON-encoded proto message body.
+//
+// The request is marshaled to JSON using protojson with camelCase field names.
+// The response is unmarshaled from JSON back to a proto message.
+//
+// Parameters:
+//   - ctx: Context for cancellation and timeouts
+//   - path: API path (e.g., "/v1/data/resource/123")
+//   - req: Proto message to send as JSON body
+//   - resp: Proto message to unmarshal response into
+//
+// Returns an error if the request fails or the response status is not 2xx.
+func (c *HTTPClient) Put(ctx context.Context, path string, req proto.Message, resp proto.Message) error {
+	return c.do(ctx, "PUT", path, req, resp, "")
+}
+
+// PutWithWrap sends a PUT request and wraps the response into a specified field before unmarshaling.
+//
+// This is useful when the API returns a plain array but proto requires a message wrapper.
+//
+// Parameters:
+//   - ctx: Context for cancellation and timeouts
+//   - path: API path (e.g., "/v1/data/resources")
+//   - req: Proto message to send as JSON body
+//   - resp: Proto message to unmarshal response into
+//   - wrapField: Field name to wrap the response array into (e.g., "response")
+//
+// Returns an error if the request fails or the response status is not 2xx.
+func (c *HTTPClient) PutWithWrap(ctx context.Context, path string, req proto.Message, resp proto.Message, wrapField string) error {
+	return c.do(ctx, "PUT", path, req, resp, wrapField)
+}
+
+// Patch sends a PATCH request with a JSON-encoded proto message body.
+//
+// The request is marshaled to JSON using protojson with camelCase field names.
+// The response is unmarshaled from JSON back to a proto message.
+//
+// Parameters:
+//   - ctx: Context for cancellation and timeouts
+//   - path: API path (e.g., "/v1/data/resource/123")
+//   - req: Proto message to send as JSON body
+//   - resp: Proto message to unmarshal response into
+//
+// Returns an error if the request fails or the response status is not 2xx.
+func (c *HTTPClient) Patch(ctx context.Context, path string, req proto.Message, resp proto.Message) error {
+	return c.do(ctx, "PATCH", path, req, resp, "")
+}
+
+// PatchWithWrap sends a PATCH request and wraps the response into a specified field before unmarshaling.
+//
+// This is useful when the API returns a plain array but proto requires a message wrapper.
+//
+// Parameters:
+//   - ctx: Context for cancellation and timeouts
+//   - path: API path (e.g., "/v1/data/resources")
+//   - req: Proto message to send as JSON body
+//   - resp: Proto message to unmarshal response into
+//   - wrapField: Field name to wrap the response array into (e.g., "response")
+//
+// Returns an error if the request fails or the response status is not 2xx.
+func (c *HTTPClient) PatchWithWrap(ctx context.Context, path string, req proto.Message, resp proto.Message, wrapField string) error {
+	return c.do(ctx, "PATCH", path, req, resp, wrapField)
+}
+
+// Delete sends a DELETE request.
+//
+// Parameters:
+//   - ctx: Context for cancellation and timeouts
+//   - path: API path (e.g., "/v1/data/resource/123")
+//   - req: Proto message to send as JSON body (can be nil)
+//   - resp: Proto message to unmarshal response into
+//
+// Returns an error if the request fails or the response status is not 2xx.
+func (c *HTTPClient) Delete(ctx context.Context, path string, req proto.Message, resp proto.Message) error {
+	return c.do(ctx, "DELETE", path, req, resp, "")
+}
+
+// DeleteWithWrap sends a DELETE request and wraps the response into a specified field before unmarshaling.
+//
+// This is useful when the API returns a plain array but proto requires a message wrapper.
+//
+// Parameters:
+//   - ctx: Context for cancellation and timeouts
+//   - path: API path (e.g., "/v1/data/resources")
+//   - req: Proto message to send as JSON body (can be nil)
+//   - resp: Proto message to unmarshal response into
+//   - wrapField: Field name to wrap the response array into (e.g., "response")
+//
+// Returns an error if the request fails or the response status is not 2xx.
+func (c *HTTPClient) DeleteWithWrap(ctx context.Context, path string, req proto.Message, resp proto.Message, wrapField string) error {
+	return c.do(ctx, "DELETE", path, req, resp, wrapField)
+}
+
 // do performs the actual HTTP request with proto message marshaling.
 //
 // This is the core method that handles:
@@ -124,9 +220,13 @@ func (c *HTTPClient) GetWithWrap(ctx context.Context, path string, resp proto.Me
 // Parameters:
 //   - wrapField: If non-empty, wraps the response JSON into this field name before unmarshaling
 func (c *HTTPClient) do(ctx context.Context, method, path string, req proto.Message, resp proto.Message, wrapField string) error {
-	// Validate HTTP method (only GET and POST are currently supported)
-	if method != MethodGET && method != MethodPOST {
-		return fmt.Errorf("unsupported HTTP method: %s (only GET and POST are supported)", method)
+	// Validate HTTP method
+	validMethods := map[string]bool{
+		MethodGET: true, MethodPOST: true, MethodPUT: true,
+		MethodPATCH: true, MethodDELETE: true,
+	}
+	if !validMethods[method] {
+		return fmt.Errorf("unsupported HTTP method: %s", method)
 	}
 
 	url := c.BaseURL + path
